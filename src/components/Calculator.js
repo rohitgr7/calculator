@@ -13,11 +13,15 @@ class Calculator extends Component {
     error: ''
   };
 
+  formatString(value) {
+    const formattedValue = numeral(value).value();
+    return numeral(formattedValue).format('0,0[.][00000]').toString();
+  }
+
   calculate = (result, value, operator) => {
     let calError = false;
     let calculatedValue = result;
     if (!value || !operator) {
-      console.log('no value');
       return { calculatedValue, calError };
     }
 
@@ -37,7 +41,7 @@ class Calculator extends Component {
       }
     }
 
-    calculatedValue = numeral(calculatedValue).format('0,0.0000').toString();
+    calculatedValue = calculatedValue.toString();
     return { calculatedValue, calError };
   }
 
@@ -46,41 +50,41 @@ class Calculator extends Component {
     if (value != '+' && value != '-' && value != '*' && value != '/' && value != 'C' && value != '=') {
       displayValue = currentValue = (currentValue === '0' || newValue) ? value : currentValue + value;
       newValue = false;
+      result = operator ? result : '';
       error = '';
-      this.setState(() => ({ currentValue, newValue, displayValue, error }));
     } else if (value === 'C') {
       result = '';
       currentValue = displayValue = '0';
       newValue = true;
       operator = '';
       error = '';
-      this.setState(() => ({ result, currentValue, newValue, error, displayValue, operator }));
     } else if (value === '=') {
       const { calculatedValue, calError } = this.calculate(result, currentValue, operator);
-      displayValue = result = calculatedValue;
+      result = calculatedValue;
+      displayValue = result ? result : '0';
       currentValue = '0';
       operator = '';
       newValue = true;
       error = '';
-      this.setState(() => ({ displayValue, newValue, result, currentValue, operator, error }));
     } else {
       if (result === '' || result === '0') {
         result = currentValue ? currentValue : result;
+        error = '';
       } else {
         const { calculatedValue, calError } = this.calculate(result, currentValue, operator);
         displayValue = result = calculatedValue;
-        this.setState(() => ({ displayValue, result }));
       }
 
       newValue = true;
       currentValue = '';
       operator = value;
-      this.setState(() => ({ currentValue, result, operator, newValue }));
     }
+
+    this.setState(() => ({ displayValue, currentValue, result, operator, newValue, error }));
 
     setTimeout(() => {
       console.log(this.state);
-    }, 100);
+    }, 200);
   }
 
   render() {
@@ -91,7 +95,7 @@ class Calculator extends Component {
         <br />
         <div className="row">
           <div className="col-4 offset-4">
-            <div>{error ? 'ERROR!!' : displayValue}</div>
+            <div>{error ? 'ERROR!!' : this.formatString(displayValue) }</div>
           </div>
         </div>
         <br />
