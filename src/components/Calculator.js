@@ -10,7 +10,7 @@ class Calculator extends Component {
     currentValue: '0',
     newValue: true,
     operator: '',
-    error: ''
+    error: false
   };
 
   formatString(value) {
@@ -34,7 +34,7 @@ class Calculator extends Component {
     } else if (operator === '*') {
       calculatedValue *= value;
     } else if (operator === '/') {
-      if (value === '0') {
+      if (value === 0) {
         calError = true;
       } else {
         calculatedValue /= value;
@@ -48,30 +48,37 @@ class Calculator extends Component {
   onClickFunction = (value) => {
     let { displayValue, currentValue, result, newValue, operator, error } = this.state;
     if (value != '+' && value != '-' && value != '*' && value != '/' && value != 'C' && value != '=') {
-      displayValue = currentValue = (currentValue === '0' || newValue) ? value : currentValue + value;
+      displayValue = currentValue = newValue ? value : currentValue + value;
       newValue = false;
       result = operator ? result : '';
-      error = '';
+      error = false;
     } else if (value === 'C') {
       result = '';
       currentValue = displayValue = '0';
       newValue = true;
       operator = '';
-      error = '';
+      error = false;
     } else if (value === '=') {
+      if (error) {
+        return;
+      }
       const { calculatedValue, calError } = this.calculate(result, currentValue, operator);
+      error = calError;
       result = calculatedValue;
       displayValue = result ? result : '0';
       currentValue = '0';
       operator = '';
       newValue = true;
-      error = '';
     } else {
+      if (error) {
+        return;
+      }
       if (result === '' || result === '0') {
         result = currentValue ? currentValue : result;
-        error = '';
+        error = false;
       } else {
         const { calculatedValue, calError } = this.calculate(result, currentValue, operator);
+        error = calError;
         displayValue = result = calculatedValue;
       }
 
@@ -80,11 +87,15 @@ class Calculator extends Component {
       operator = value;
     }
 
-    this.setState(() => ({ displayValue, currentValue, result, operator, newValue, error }));
+    if (error) {
+      displayValue = '0';
+      currentValue = '';
+      result = '';
+      operator = '';
+      newValue = true;
+    }
 
-    setTimeout(() => {
-      console.log(this.state);
-    }, 200);
+    this.setState(() => ({ displayValue, currentValue, result, operator, newValue, error }));
   }
 
   render() {
